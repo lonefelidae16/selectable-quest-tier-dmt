@@ -265,7 +265,7 @@ public class SelectableQuestTier
     [HarmonyPatch("GetResponses")]
     public class SelectableQuestTier_DialogStatement_GetResponses
     {
-        static void Postfix(List<DialogResponse> __result, DialogStatement __instance)
+        static List<DialogResponse> Postfix(List<DialogResponse> __result, DialogStatement __instance)
         {
             SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_DialogStatement_GetResponses patcher method 'Postfix'");
             __result.Clear();
@@ -282,7 +282,7 @@ public class SelectableQuestTier
                     {
                         DialogQuestResponseEntry dialogQuestResponseEntry = __instance.ResponseEntries[i] as DialogQuestResponseEntry;
                         DialogResponseQuest dialogResponseQuest = new DialogResponseQuest(dialogQuestResponseEntry.ID);
-                        byte _tier = 1;
+                        byte _tier = 0;
                         switch (__instance.ID)
                         {
                             case "currentjobsT1":
@@ -324,6 +324,7 @@ public class SelectableQuestTier
 
             SelectableQuestTier_Logger.Log("List<DialogResponse> __result .Count == " + __result.Count);
             SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_DialogStatement_GetResponses patcher method 'Postfix'");
+            return __result;
         }
 
         // Helper Method
@@ -334,10 +335,6 @@ public class SelectableQuestTier
             Quest quest = null;
             LocalPlayerUI uIForPlayer = LocalPlayerUI.GetUIForPlayer(GameManager.Instance.World.GetPrimaryPlayer());
             EntityNPC respondent = uIForPlayer.xui.Dialog.Respondent;
-            if (tier == 0)
-            {
-                throw new ArgumentException("Unknown Tier value: " + tier);
-            }
             if (tier > Quest.MaxQuestTier)
             {
                 throw new ArgumentException("Tier value over Quest.MaxQuestTier ( == " + Quest.MaxQuestTier + ")");
@@ -396,6 +393,10 @@ public class SelectableQuestTier
                 });
                 instance.ReturnStatementID = _nextStatementID;
                 instance.NextStatementID = _nextStatementID;
+                if (tier == 0)
+                {
+                    tier = quest.QuestClass.DifficultyTier;
+                }
                 string text = "I";
                 switch (tier)
                 {
