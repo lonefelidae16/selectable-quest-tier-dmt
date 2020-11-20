@@ -1,0 +1,7 @@
+Key,File,Type,Changes,english,japanese
+dialog_trader_response_jobshaveT1,Quest,Dialogs,New,Tier I,ティア I
+dialog_trader_response_jobshaveT2,Quest,Dialogs,New,Tier II,ティア II
+dialog_trader_response_jobshaveT3,Quest,Dialogs,New,Tier III,ティア III
+dialog_trader_response_jobshaveT4,Quest,Dialogs,New,Tier IV,ティア IV
+dialog_trader_response_jobshaveT5,Quest,Dialogs,New,Tier V,ティア V
+dialog_trader_statement_jobstier,Quest,Dialogs,New,What kind of difficulty are you looking for?,どの程度の難しさをご希望かな？

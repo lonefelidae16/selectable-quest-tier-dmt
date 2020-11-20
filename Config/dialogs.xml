@@ -1,0 +1,96 @@
+<VFX>
+	<!-- Replace to New ID -->
+    <set xpath="/dialogs/dialog[@id='trader']/response[@id='jobshave']/@nextstatementid">jobstier</set>
+
+    <append xpath="/dialogs/dialog">
+		<!-- Statement Definitions -->
+        <statement id="jobstier" text="dialog_trader_statement_jobstier">
+			<response_entry id="jobshaveT1"/>
+			<response_entry id="jobshaveT2"/>
+			<response_entry id="jobshaveT3"/>
+			<response_entry id="jobshaveT4"/>
+			<response_entry id="jobshaveT5"/>
+			<response_entry id="nevermind"/>
+        </statement>
+
+		<statement id="currentjobsT1" text="dialog_trader_statement_currentjobs" nextstatementid="start">
+			<quest_entry listindex="0"/>
+			<quest_entry listindex="1"/>
+			<quest_entry listindex="2"/>
+			<quest_entry listindex="3"/>
+			<quest_entry listindex="4"/>
+			<response_entry id="nevermind"/>
+		</statement>
+
+		<statement id="currentjobsT2" text="dialog_trader_statement_currentjobs" nextstatementid="start">
+			<quest_entry listindex="0"/>
+			<quest_entry listindex="1"/>
+			<quest_entry listindex="2"/>
+			<quest_entry listindex="3"/>
+			<quest_entry listindex="4"/>
+			<response_entry id="nevermind"/>
+		</statement>
+
+		<statement id="currentjobsT3" text="dialog_trader_statement_currentjobs" nextstatementid="start">
+			<quest_entry listindex="0"/>
+			<quest_entry listindex="1"/>
+			<quest_entry listindex="2"/>
+			<quest_entry listindex="3"/>
+			<quest_entry listindex="4"/>
+			<response_entry id="nevermind"/>
+		</statement>
+
+		<statement id="currentjobsT4" text="dialog_trader_statement_currentjobs" nextstatementid="start">
+			<quest_entry listindex="0"/>
+			<quest_entry listindex="1"/>
+			<quest_entry listindex="2"/>
+			<quest_entry listindex="3"/>
+			<quest_entry listindex="4"/>
+			<response_entry id="nevermind"/>
+		</statement>
+
+		<statement id="currentjobsT5" text="dialog_trader_statement_currentjobs" nextstatementid="start" >
+			<quest_entry listindex="0"/>
+			<quest_entry listindex="1"/>
+			<quest_entry listindex="2"/>
+			<quest_entry listindex="3"/>
+			<quest_entry listindex="4"/>
+			<response_entry id="nevermind"/>
+		</statement>
+
+
+		<!-- Response Definitions -->
+        <response id="jobstier">
+			<requirement type="QuestStatus" value="NotStarted" requirementtype="Hide"/>
+        </response>
+
+        <response id="jobshaveT1" text="dialog_trader_response_jobshaveT1" nextstatementid="currentjobsT1">
+			<requirement type="QuestStatus" value="NotStarted" requirementtype="Hide"/>
+			<action type="AddJournalEntry" id="questTip"/>
+        </response>
+        <response id="jobshaveT2" text="dialog_trader_response_jobshaveT2" nextstatementid="currentjobsT2">
+			<requirement type="CurrentTierSDX, Mods" value="2" requirementtype="Hide"/>
+			<!-- <requirement type="Admin" requirementtype="Hide"/> -->
+			<requirement type="QuestStatus" value="NotStarted" requirementtype="Hide"/>
+			<action type="AddJournalEntry" id="questTip"/>
+        </response>
+        <response id="jobshaveT3" text="dialog_trader_response_jobshaveT3" nextstatementid="currentjobsT3">
+			<requirement type="CurrentTierSDX, Mods" value="3" requirementtype="Hide"/>
+			<!-- <requirement type="Admin" requirementtype="Hide"/> -->
+			<requirement type="QuestStatus" value="NotStarted" requirementtype="Hide"/>
+			<action type="AddJournalEntry" id="questTip"/>
+        </response>
+        <response id="jobshaveT4" text="dialog_trader_response_jobshaveT4" nextstatementid="currentjobsT4">
+			<requirement type="CurrentTierSDX, Mods" value="4" requirementtype="Hide"/>
+			<!-- <requirement type="Admin" requirementtype="Hide"/> -->
+			<requirement type="QuestStatus" value="NotStarted" requirementtype="Hide"/>
+			<action type="AddJournalEntry" id="questTip"/>
+        </response>
+        <response id="jobshaveT5" text="dialog_trader_response_jobshaveT5" nextstatementid="currentjobsT5">
+			<requirement type="CurrentTierSDX, Mods" value="5" requirementtype="Hide"/>
+			<!-- <requirement type="Admin" requirementtype="Hide"/> -->
+			<requirement type="QuestStatus" value="NotStarted" requirementtype="Hide"/>
+			<action type="AddJournalEntry" id="questTip"/>
+        </response>
+    </append>
+</VFX>

@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+  <ModInfo>
+    <Name value="Selectable Quest Tier" />
+    <Description value="Allows to choose quest tier which you want" />
+    <Author value="kow08 and SphereII" />
+    <Version value="1.0.3-19.2b4" />
+    <Website value="" />
+  </ModInfo>
+  <DMT>
+    <dependencies />
+    <conflicts />
+  </DMT>
+</xml>
