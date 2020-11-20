@@ -347,9 +347,10 @@ public class SelectableQuestTier
             }
             else
             {
-                List<Quest> activeQuests = respondent.activeTieredQuests[tier];
-                if (_type == "")
+                List<Quest> activeQuests;
+                if (_type == "" && respondent.activeTieredQuests.ContainsKey(tier))
                 {
+                    activeQuests = respondent.activeTieredQuests[tier];
                     if (activeQuests != null && listIndex < activeQuests.Count && activeQuests[listIndex].QuestClass.QuestType == "")
                     {
                         quest = activeQuests[listIndex];
