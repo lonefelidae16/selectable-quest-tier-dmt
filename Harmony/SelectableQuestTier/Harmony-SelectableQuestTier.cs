@@ -430,7 +430,7 @@ public class SelectableQuestTier
         static bool Prefix(XUiC_QuestOfferWindow __instance)
         {
             SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_XUiC_QuestOfferWindow_OnClose patcher method 'Prefix'");
-            if (__instance.questAccepted)
+            if (__instance.OfferType == XUiC_QuestOfferWindow.OfferTypes.Dialog && __instance.questAccepted)
             {
                 Quest quest = __instance.Quest;
                 var tier = quest.QuestClass.DifficultyTier;
