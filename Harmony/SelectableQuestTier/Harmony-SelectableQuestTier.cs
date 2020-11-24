@@ -348,7 +348,7 @@ public class SelectableQuestTier
             else
             {
                 List<Quest> activeQuests;
-                if (_type == "" && respondent.activeTieredQuests.ContainsKey(tier))
+                if (_type == "" && respondent.activeTieredQuests != null && respondent.activeTieredQuests.ContainsKey(tier))
                 {
                     activeQuests = respondent.activeTieredQuests[tier];
                     if (activeQuests != null && listIndex < activeQuests.Count && activeQuests[listIndex].QuestClass.QuestType == "")
@@ -430,13 +430,16 @@ public class SelectableQuestTier
         static bool Prefix(XUiC_QuestOfferWindow __instance)
         {
             SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_XUiC_QuestOfferWindow_OnClose patcher method 'Prefix'");
-            if (__instance.OfferType == XUiC_QuestOfferWindow.OfferTypes.Dialog && __instance.questAccepted)
+            var activeTieredQuests = __instance.xui.Dialog.Respondent.activeTieredQuests;
+            if (__instance.OfferType == XUiC_QuestOfferWindow.OfferTypes.Dialog && __instance.questAccepted && activeTieredQuests != null)
             {
                 Quest quest = __instance.Quest;
                 var tier = quest.QuestClass.DifficultyTier;
-                if (__instance.xui.Dialog.Respondent.activeTieredQuests.ContainsKey(tier) && (!GamePrefs.GetBool(EnumGamePrefs.DebugMenuEnabled) || (quest.QuestTags & QuestTags.treasure) == 0))
+                bool isFetch = (quest.QuestTags & QuestTags.fetch) == QuestTags.fetch;
+                bool isClear = (quest.QuestTags & QuestTags.clear) == QuestTags.clear;
+                if (activeTieredQuests.ContainsKey(tier) && (!GamePrefs.GetBool(EnumGamePrefs.DebugMenuEnabled) || !isFetch || !isClear))
                 {
-                    if (__instance.xui.Dialog.Respondent.activeTieredQuests[tier].Remove(quest))
+                    if (activeTieredQuests[tier].Remove(quest))
                     {
                         SelectableQuestTier_Logger.Log("Deleting Quest from activeTieredQuests, Tier == " + tier);
                     }

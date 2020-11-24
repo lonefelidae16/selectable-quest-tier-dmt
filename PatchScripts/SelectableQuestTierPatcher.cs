@@ -31,6 +31,7 @@ public class Patcher_SelectableQuestTier : IPatcherMod
         TypeReference objectTypeRef = module.TypeSystem.Object;
         TypeReference ulongTypeRef = module.TypeSystem.UInt64;
         MethodDefinition objectCtor = module.ImportReference(typeof(object)).Resolve().Methods.First(d => d.Name == ".ctor");
+        TypeReference tDifficultyTier = module.Types.First(d => d.Name == "QuestClass").Properties.First(d => d.Name == "DifficultyTier").PropertyType;
 
         string _namespace = "Harmony_SelectableQuestTier";
         // string _namespace = "";
@@ -65,10 +66,11 @@ public class Patcher_SelectableQuestTier : IPatcherMod
         var fQuestAccepted = cXUiC_QuestOfferWindow.Fields.First(d => d.Name == "questAccepted");
         SetFieldToPublic(fQuestAccepted);
 
+        var gTieredQuestList = new GenericInstanceType(module.ImportReference(typeof(Dictionary<,>)));
+        gTieredQuestList.GenericArguments.Add(tDifficultyTier);
+        gTieredQuestList.GenericArguments.Add(module.ImportReference(typeof(List<Quest>)));
 
         // Add class
-        var tTieredQuestList = module.ImportReference(typeof(Dictionary<byte, List<Quest>>));  // This is Magic of this patch
-
         /*
         namespace ${_namespace}
         {
@@ -92,7 +94,7 @@ public class Patcher_SelectableQuestTier : IPatcherMod
                         }
                     }
 
-                    public PlayerTieredQuestData(Dictionary<int, List<Quest>> tieredQuestList)
+                    public PlayerTieredQuestData(Dictionary<byte, List<Quest>> tieredQuestList)
                     {
                         TieredQuestList = tieredQuestList;
                     }
@@ -104,18 +106,18 @@ public class Patcher_SelectableQuestTier : IPatcherMod
         */
         var cNPCTieredQuestData = new TypeDefinition(_namespace, "NPCTieredQuestData", TypeAttributes.Class | TypeAttributes.Public, objectTypeRef);
         var cnPlayerTieredQuestData = new TypeDefinition("", "PlayerTieredQuestData", TypeAttributes.Class | TypeAttributes.NestedPublic, objectTypeRef);
-        var fTieredQuestList = new FieldDefinition("tieredQuestList", FieldAttributes.Private, tTieredQuestList);
+        var fTieredQuestList = new FieldDefinition("tieredQuestList", FieldAttributes.Private, gTieredQuestList);
         cnPlayerTieredQuestData.Fields.Add(fTieredQuestList);
         var fLastUpdateTime = new FieldDefinition("LastUpdate", FieldAttributes.Public, ulongTypeRef);
         cnPlayerTieredQuestData.Fields.Add(fLastUpdateTime);
-        var mGet_TieredQuestList = new MethodDefinition("get_TieredQuestList", MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.CompilerControlled | MethodAttributes.HideBySig, tTieredQuestList);
+        var mGet_TieredQuestList = new MethodDefinition("get_TieredQuestList", MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.CompilerControlled | MethodAttributes.HideBySig, gTieredQuestList);
         var mGet_TieredQuestListProc = mGet_TieredQuestList.Body.GetILProcessor();
         mGet_TieredQuestListProc.Append(Instruction.Create(OpCodes.Ldarg_0));
         mGet_TieredQuestListProc.Append(Instruction.Create(OpCodes.Ldfld, fTieredQuestList));
         mGet_TieredQuestListProc.Append(Instruction.Create(OpCodes.Ret));
         cnPlayerTieredQuestData.Methods.Add(mGet_TieredQuestList);
         var mSet_TieredQuestList = new MethodDefinition("set_TieredQuestList", MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.CompilerControlled | MethodAttributes.HideBySig, voidTypeRef);
-        mSet_TieredQuestList.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, tTieredQuestList));
+        mSet_TieredQuestList.Parameters.Add(new ParameterDefinition("value", ParameterAttributes.None, gTieredQuestList));
         var mSet_TieredQuestListProc = mSet_TieredQuestList.Body.GetILProcessor();
         var tGameManager = module.Types.First(d => d.Name == "GameManager");
         mSet_TieredQuestListProc.Append(Instruction.Create(OpCodes.Ldarg_0));
@@ -134,12 +136,12 @@ public class Patcher_SelectableQuestTier : IPatcherMod
         mSet_TieredQuestListProc.Append(Instruction.Create(OpCodes.Stfld, fLastUpdateTime));
         mSet_TieredQuestListProc.Append(Instruction.Create(OpCodes.Ret));
         cnPlayerTieredQuestData.Methods.Add(mSet_TieredQuestList);
-        var pTieredQuestList = new PropertyDefinition("TieredQuestList", PropertyAttributes.None, tTieredQuestList);
+        var pTieredQuestList = new PropertyDefinition("TieredQuestList", PropertyAttributes.None, gTieredQuestList);
         pTieredQuestList.GetMethod = mGet_TieredQuestList;
         pTieredQuestList.SetMethod = mSet_TieredQuestList;
         cnPlayerTieredQuestData.Properties.Add(pTieredQuestList);
         var mPlayerTieredQuestDataCtor = new MethodDefinition(".ctor", MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName | MethodAttributes.Public, voidTypeRef);
-        mPlayerTieredQuestDataCtor.Parameters.Add(new ParameterDefinition("tieredQuestList", ParameterAttributes.None, tTieredQuestList));
+        mPlayerTieredQuestDataCtor.Parameters.Add(new ParameterDefinition("tieredQuestList", ParameterAttributes.None, gTieredQuestList));
         var mPlayerTieredQuestDataCtorProc = mPlayerTieredQuestDataCtor.Body.GetILProcessor();
         mPlayerTieredQuestDataCtorProc.Append(Instruction.Create(OpCodes.Ldarg_0));
         mPlayerTieredQuestDataCtorProc.Append(Instruction.Create(OpCodes.Call, module.ImportReference(objectCtor)));
@@ -173,7 +175,7 @@ public class Patcher_SelectableQuestTier : IPatcherMod
         var cQuestEventManager = module.Types.First(d => d.Name == "QuestEventManager");
 
         // Add field
-        var fActiveQuestsTiered = new FieldDefinition("activeTieredQuests", FieldAttributes.Public, tTieredQuestList);
+        var fActiveQuestsTiered = new FieldDefinition("activeTieredQuests", FieldAttributes.Public, gTieredQuestList);
         cEntityNPC.Fields.Add(fActiveQuestsTiered);
 
         var gDictIntCnNPCTieredQuestData = new GenericInstanceType(module.ImportReference(typeof(Dictionary<,>)));
@@ -201,7 +203,7 @@ public class Patcher_SelectableQuestTier : IPatcherMod
         cDialogResponseQuest.Methods.Add(mDialogResponseQuestCtor);
         
         //public Dictionary<int, List<Quest>> QuestEventManager::GetTieredQuestList(World world, int npcEntityID, int playerEntityID);
-        var mGetTieredQuestList = new MethodDefinition("GetTieredQuestList", MethodAttributes.Public, tTieredQuestList);
+        var mGetTieredQuestList = new MethodDefinition("GetTieredQuestList", MethodAttributes.Public, gTieredQuestList);
         mGetTieredQuestList.Parameters.Add(new ParameterDefinition("world", ParameterAttributes.None, module.Types.First(d => d.Name == "World")));
         mGetTieredQuestList.Parameters.Add(new ParameterDefinition("npcEntityID", ParameterAttributes.None, intTypeRef));
         mGetTieredQuestList.Parameters.Add(new ParameterDefinition("playerEntityID", ParameterAttributes.None, intTypeRef));
