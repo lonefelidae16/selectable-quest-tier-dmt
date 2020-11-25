@@ -7,6 +7,7 @@ using System;
 using System.Xml;
 using System.Reflection;
 using System.Reflection.Emit;
+
 using Harmony_SelectableQuestTier;
 
 
@@ -38,6 +39,19 @@ public class SelectableQuestTier
         }
     }
 
+    public class ObjectNotFoundException : Exception
+    {
+        public ObjectNotFoundException () {}
+        public ObjectNotFoundException (string message)
+            : base (message)
+        {
+        }
+        public ObjectNotFoundException (string message, Exception inner)
+            : base (message, inner)
+        {
+        }
+    }
+
     // Unfortunately I'm inserting patch method to avoid Exception: "MissingMethodException: void System.Collections.Generic.Dictionary`2..ctor()"
     [HarmonyPatch(typeof(NPCTieredQuestData), MethodType.Constructor)]
     [HarmonyPatch("NPCTieredQuestData")]
@@ -54,6 +68,7 @@ public class SelectableQuestTier
     [HarmonyPatch("GetTieredQuestList")]
     public class SelectableQuestTier_QuestEventManager_GetTieredQuestList
     {
+        // CHECK: Hardcoded type of DifficultyTier "Dictionary<(typeof(QuestClass.DifficultyTier)), List<Quest>>"
         static Dictionary<byte, List<Quest>> Postfix(Dictionary<byte, List<Quest>> __result, QuestEventManager __instance, World world, int npcEntityID, int playerEntityID)
         {
             SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_QuestEventManager_GetTieredQuestList custom method injection 'Postfix'");
@@ -135,7 +150,7 @@ public class SelectableQuestTier
                 __instance.activeTieredQuests = QuestEventManager.Current.GetTieredQuestList(GameManager.Instance.World, __instance.entityId, _entityFocusing.entityId);
                 if (__instance.activeTieredQuests == null)
                 {
-                    throw new Exception("ObjectNotFoundException: QuestEventManager.Current.GetTieredQuestList() returns Null; restoring FAILED");
+                    throw new ObjectNotFoundException("QuestEventManager.Current.GetTieredQuestList() returns Null; restoring FAILED");
                 }
             }
             SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_EntityNPC_OnEntityActivated patcher method 'Postfix'");
@@ -151,6 +166,7 @@ public class SelectableQuestTier
             SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_EntityNPC_PopulateActiveQuests patcher method 'Postfix'");
 
             // Init
+            // CHECK: Hardcoded type of DifficultyTier "Dictionary<(typeof(QuestClass.DifficultyTier)), List<Quest>>"
             __instance.activeTieredQuests = new Dictionary<byte, List<Quest>>();
             for (byte i=1; i<=Quest.MaxQuestTier; ++i)
             {
@@ -160,7 +176,7 @@ public class SelectableQuestTier
             var tmpQuestEntryList = __instance.questList;
             SelectableQuestTier_Logger.Log("List of QuestEntryList.Count == " + tmpQuestEntryList.Count);
 
-            for (byte t=1; t<=5; ++t)
+            for (byte t=1; t<=Quest.MaxQuestTier; ++t)
             {
                 // Fill QuestList Range 5 (DifficultyTier <= 2), or RandomRange 3 to 5 (DifficultyTier == 3), or RandomRange 2 to 4 (DifficultyTier >= 4)
                 int maxCount = (t <= 2) ? 5 : ((t == 3) ? 3 + __instance.rand.RandomRange(2) : 2 + __instance.rand.RandomRange(2));
@@ -214,11 +230,17 @@ public class SelectableQuestTier
             return null;
         }
 
+        // CHECK: Hardcoded type of DifficultyTier "Dictionary<(typeof(QuestClass.DifficultyTier)), List<Quest>>"
         static void SetupTieredQuestList(QuestEventManager manager, int nPCId, int playerId, Dictionary<byte, List<Quest>> tieredQuestList)
         {
             if (tieredQuestList == null)
             {
                 throw new ArgumentException("tieredQuestList is Null");
+            }
+            if (manager.npcTieredQuestData == null)
+            {
+                SelectableQuestTier_Logger.LogError("FieldNotInitialized: QuestEventManager.npcTieredQuestData is Null");
+                return;
             }
             if (!manager.npcTieredQuestData.ContainsKey(nPCId))
             {
@@ -309,7 +331,6 @@ public class SelectableQuestTier
                         ReInit(dialogResponseQuest, dialogQuestResponseEntry.ReturnStatementID, dialogQuestResponseEntry.questType, __instance.OwnerDialog, dialogQuestResponseEntry.ListIndex, _tier);
                         if (dialogResponseQuest.IsValid)
                         {
-                            SelectableQuestTier_Logger.Log("instantiate DialogQuestResponseEntry");
                             __result.Add(dialogResponseQuest);
                         }
                         break;
