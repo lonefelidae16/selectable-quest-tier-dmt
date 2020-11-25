@@ -451,14 +451,14 @@ public class SelectableQuestTier
         static bool Prefix(XUiC_QuestOfferWindow __instance)
         {
             SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_XUiC_QuestOfferWindow_OnClose patcher method 'Prefix'");
-            var activeTieredQuests = __instance.xui.Dialog.Respondent.activeTieredQuests;
-            if (__instance.OfferType == XUiC_QuestOfferWindow.OfferTypes.Dialog && __instance.questAccepted && activeTieredQuests != null)
+            if (__instance.OfferType == XUiC_QuestOfferWindow.OfferTypes.Dialog && __instance.questAccepted && __instance.xui.Dialog.Respondent != null)
             {
                 Quest quest = __instance.Quest;
+                var activeTieredQuests = __instance.xui.Dialog.Respondent.activeTieredQuests;
                 var tier = quest.QuestClass.DifficultyTier;
                 bool isFetch = (quest.QuestTags & QuestTags.fetch) == QuestTags.fetch;
                 bool isClear = (quest.QuestTags & QuestTags.clear) == QuestTags.clear;
-                if (activeTieredQuests.ContainsKey(tier) && (!GamePrefs.GetBool(EnumGamePrefs.DebugMenuEnabled) || !isFetch || !isClear))
+                if (activeTieredQuests != null && activeTieredQuests.ContainsKey(tier) && (!GamePrefs.GetBool(EnumGamePrefs.DebugMenuEnabled) || !isFetch || !isClear))
                 {
                     if (activeTieredQuests[tier].Remove(quest))
                     {
