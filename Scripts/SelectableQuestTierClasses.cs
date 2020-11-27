@@ -23,7 +23,7 @@ public class DialogRequirementCurrentTierSDX : BaseDialogRequirement
         }
         catch
         {
-            throw new Exception("ClassCastException: XmlParseException: Tier value must be Int32!");
+            UnityEngine.Debug.LogError("Failed to cast: XmlParseException: Tier value must be Int32!");
         }
         return tier <= uIForPlayer.entityPlayer.QuestJournal.GetCurrentFactionTier(0) || GamePrefs.GetBool(EnumGamePrefs.DebugMenuEnabled);
     }

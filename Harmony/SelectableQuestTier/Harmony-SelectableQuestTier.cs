@@ -15,27 +15,49 @@ public class SelectableQuestTier
 {
     public class SelectableQuestTier_Logger
     {
+        private static int _depth = 0;
+
         public static void Log(params object[] args)
         {
             if (GamePrefs.GetBool(EnumGamePrefs.DebugMenuEnabled))
             {
-                Debug.Log(NullSafeJoin(", ", args));
+                Debug.Log(GenerateIndentedString(NullSafeJoin(", ", args)));
             }
         }
 
         public static void LogWarning(params object[] args)
         {
-            Debug.LogWarning(NullSafeJoin(", ", args));
+            Debug.LogWarning(GenerateIndentedString(NullSafeJoin(", ", args)));
         }
 
         public static void LogError(params object[] args)
         {
-            Debug.LogError(NullSafeJoin(", ", args));
+            Debug.LogError(GenerateIndentedString(NullSafeJoin(", ", args)));
         }
 
-        static string NullSafeJoin(string separator, params object[] args)
+        private static string GenerateIndentedString(string _in)
+        {
+            string result = "";
+            for (int i=0; i<_depth; ++i)
+            {
+                result += "  ";
+            }
+            return result + _in;
+        }
+
+        private static string NullSafeJoin(string separator, params object[] args)
         {
             return string.Join(separator, args.Select(a => (a == null) ? "Null" : a));
+        }
+
+        public static void Inc()
+        {
+            ++_depth;
+        }
+
+        public static void Dec()
+        {
+            _depth = Math.Max(--_depth, 0);
         }
     }
 
@@ -72,6 +94,8 @@ public class SelectableQuestTier
         static Dictionary<byte, List<Quest>> Postfix(Dictionary<byte, List<Quest>> __result, QuestEventManager __instance, World world, int npcEntityID, int playerEntityID)
         {
             SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_QuestEventManager_GetTieredQuestList custom method injection 'Postfix'");
+            SelectableQuestTier_Logger.Inc();
+
             if (__instance.npcTieredQuestData.ContainsKey(npcEntityID))
             {
                 SelectableQuestTier_Logger.Log("found NPCQuestData by NPC ID: " + npcEntityID);
@@ -88,6 +112,8 @@ public class SelectableQuestTier
                     __result = questData.TieredQuestList;
                 }
             }
+
+            SelectableQuestTier_Logger.Dec();
             SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_QuestEventManager_GetTieredQuestList custom method injection 'Postfix'");
             return __result;
         }
@@ -100,11 +126,15 @@ public class SelectableQuestTier
         static void Postfix(QuestEventManager __instance, int npcEntityID)
         {
             SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_QuestEventManager_ClearQuestList patcher method 'Postfix'");
+            SelectableQuestTier_Logger.Inc();
+
             if (__instance.npcTieredQuestData.ContainsKey(npcEntityID))
             {
                 SelectableQuestTier_Logger.Log("Clearing quest list by NPC: ID = " + npcEntityID);
                 __instance.npcTieredQuestData[npcEntityID].PlayerTieredQuestList.Clear();
             }
+
+            SelectableQuestTier_Logger.Dec();
             SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_QuestEventManager_ClearQuestList patcher method 'Postfix'");
         }
     }
@@ -116,8 +146,12 @@ public class SelectableQuestTier
         static void Postfix(QuestEventManager __instance)
         {
             SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_QuestEventManager_Cleanup patcher method 'Postfix'");
+            SelectableQuestTier_Logger.Inc();
+
             SelectableQuestTier_Logger.Log("Cleaning up");
             __instance.npcTieredQuestData.Clear();
+
+            SelectableQuestTier_Logger.Dec();
             SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_QuestEventManager_Cleanup patcher method 'Postfix'");
         }
     }
@@ -144,6 +178,8 @@ public class SelectableQuestTier
         static void Postfix(EntityNPC __instance, int _indexInBlockActivationCommands, Vector3i _tePos, EntityAlive _entityFocusing)
         {
             SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_EntityNPC_OnEntityActivated patcher method 'Postfix'");
+            SelectableQuestTier_Logger.Inc();
+
             if (__instance.activeTieredQuests == null)
             {
                 SelectableQuestTier_Logger.Log("restoring 'activeTieredQuests'");
@@ -153,6 +189,8 @@ public class SelectableQuestTier
                     throw new ObjectNotFoundException("QuestEventManager.Current.GetTieredQuestList() returns Null; restoring FAILED");
                 }
             }
+
+            SelectableQuestTier_Logger.Dec();
             SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_EntityNPC_OnEntityActivated patcher method 'Postfix'");
         }
     }
@@ -164,6 +202,7 @@ public class SelectableQuestTier
         static void Postfix(EntityNPC __instance, EntityPlayer player, int currentTier)
         {
             SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_EntityNPC_PopulateActiveQuests patcher method 'Postfix'");
+            SelectableQuestTier_Logger.Inc();
 
             // Init
             // CHECK: Hardcoded type of DifficultyTier "Dictionary<(typeof(QuestClass.DifficultyTier)), List<Quest>>"
@@ -205,12 +244,17 @@ public class SelectableQuestTier
             }
             SelectableQuestTier_Logger.Log("EntityNPC.activeTieredQuests Generation Complete");
             SetupTieredQuestList(QuestEventManager.Current, __instance.entityId, player.entityId, __instance.activeTieredQuests);
+
+            SelectableQuestTier_Logger.Dec();
             SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_EntityNPC_PopulateActiveQuests patcher method 'Postfix'");
         }
 
         // Helper Methods
         static Quest GenerateQuest(EntityNPC targetNPC, EntityPlayer player, QuestClass questClass)
         {
+            // SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_EntityNPC_PopulateActiveQuests helper method 'GenerateQuest'");
+            // SelectableQuestTier_Logger.Inc();
+
             bool @bool = GameStats.GetBool(EnumGameStats.EnemySpawnMode);
             Quest quest = questClass.CreateQuest();
             quest.QuestGiverID = targetNPC.entityId;
@@ -227,12 +271,18 @@ public class SelectableQuestTier
                     return quest;
                 }
             }
+
+            // SelectableQuestTier_Logger.Dec();
+            // SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_EntityNPC_PopulateActiveQuests helper method 'GenerateQuest'");
             return null;
         }
 
         // CHECK: Hardcoded type of DifficultyTier "Dictionary<(typeof(QuestClass.DifficultyTier)), List<Quest>>"
         static void SetupTieredQuestList(QuestEventManager manager, int nPCId, int playerId, Dictionary<byte, List<Quest>> tieredQuestList)
         {
+            SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_EntityNPC_PopulateActiveQuests helper method 'SetupTieredQuestList'");
+            SelectableQuestTier_Logger.Inc();
+
             if (tieredQuestList == null)
             {
                 throw new ArgumentException("tieredQuestList is Null");
@@ -257,6 +307,9 @@ public class SelectableQuestTier
                 SelectableQuestTier_Logger.Log("Player ID existing: ID = " + playerId);
                 manager.npcTieredQuestData[nPCId].PlayerTieredQuestList[playerId].TieredQuestList = tieredQuestList;
             }
+
+            SelectableQuestTier_Logger.Dec();
+            SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_EntityNPC_PopulateActiveQuests helper method 'SetupTieredQuestList'");
         }
     }
 
@@ -266,7 +319,9 @@ public class SelectableQuestTier
     {
         static void Postfix(EntityNPC __instance, int playerID)
         {
-            SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_EntityNPC_ClearActiveQuests patcher method 'Postfix'");
+            // SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_EntityNPC_ClearActiveQuests patcher method 'Postfix'");
+            // SelectableQuestTier_Logger.Inc();
+
             try
             {
                 __instance.activeTieredQuests = null;
@@ -279,7 +334,9 @@ public class SelectableQuestTier
             // {
             //     SingletonMonoBehaviour<ConnectionManager>.Instance.SendToServer(NetPackageManager.GetPackage<NetPackageNPCQuestList>().Setup(entityId, playerID));
             // }
-            SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_EntityNPC_ClearActiveQuests patcher method 'Postfix'");
+
+            // SelectableQuestTier_Logger.Dec();
+            // SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_EntityNPC_ClearActiveQuests patcher method 'Postfix'");
         }
     }
 
@@ -287,9 +344,17 @@ public class SelectableQuestTier
     [HarmonyPatch("GetResponses")]
     public class SelectableQuestTier_DialogStatement_GetResponses
     {
+        private static string _colorT1 = Localization.Get("xuiColoredDifficultyTier1").ToUpper();
+        private static string _colorT2 = Localization.Get("xuiColoredDifficultyTier2").ToUpper();
+        private static string _colorT3 = Localization.Get("xuiColoredDifficultyTier3").ToUpper();
+        private static string _colorT4 = Localization.Get("xuiColoredDifficultyTier4").ToUpper();
+        private static string _colorT5 = Localization.Get("xuiColoredDifficultyTier5").ToUpper();
+
         static List<DialogResponse> Postfix(List<DialogResponse> __result, DialogStatement __instance)
         {
             SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_DialogStatement_GetResponses patcher method 'Postfix'");
+            SelectableQuestTier_Logger.Inc();
+
             __result.Clear();
             if (__instance.ResponseEntries.Count > 0)
             {
@@ -344,6 +409,8 @@ public class SelectableQuestTier
             }
 
             SelectableQuestTier_Logger.Log("List<DialogResponse> __result .Count == " + __result.Count);
+
+            SelectableQuestTier_Logger.Dec();
             SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_DialogStatement_GetResponses patcher method 'Postfix'");
             return __result;
         }
@@ -351,6 +418,9 @@ public class SelectableQuestTier
         // Helper Method
         static void ReInit(DialogResponseQuest instance, string _nextStatementID, string _type, Dialog _ownerDialog, int listIndex = -1, byte tier = 0)
         {
+            SelectableQuestTier_Logger.Log(">>> SelectableQuestTier_DialogStatement_GetResponses helper method 'ReInit'");
+            SelectableQuestTier_Logger.Inc();
+
             instance.OwnerDialog = _ownerDialog;
 
             Quest quest = null;
@@ -420,27 +490,46 @@ public class SelectableQuestTier
                     tier = quest.QuestClass.DifficultyTier;
                 }
                 string text = "I";
-                switch (tier)
+                string color = "DECEA3";
+                try
                 {
-                case 1:
-                    text = "I";
-                    break;
-                case 2:
-                    text = "II";
-                    break;
-                case 3:
-                    text = "III";
-                    break;
-                case 4:
-                    text = "IV";
-                    break;
-                case 5:
-                    text = "V";
-                    break;
+                    switch (tier)
+                    {
+                    case 1:
+                        text = "I";
+                        StringParsers.ParseHexColor(_colorT1);
+                        color = _colorT1;
+                        break;
+                    case 2:
+                        text = "II";
+                        StringParsers.ParseHexColor(_colorT2);
+                        color = _colorT2;
+                        break;
+                    case 3:
+                        text = "III";
+                        StringParsers.ParseHexColor(_colorT3);
+                        color = _colorT3;
+                        break;
+                    case 4:
+                        text = "IV";
+                        StringParsers.ParseHexColor(_colorT4);
+                        color = _colorT4;
+                        break;
+                    case 5:
+                        text = "V";
+                        StringParsers.ParseHexColor(_colorT5);
+                        color = _colorT5;
+                        break;
+                    }
+                } catch (Exception ex) {
+                    SelectableQuestTier_Logger.LogError("ColorParseError: please check Localization.txt\n", ex);
                 }
-                instance.Text = "[[DECEA3]" + Localization.Get("xuiTier").ToUpper() + " " + text + "[-]] " + quest.GetParsedText(quest.QuestClass.ResponseText);
+                instance.Text = "[[" + color + "]" + Localization.Get("xuiTier").ToUpper() + " " + text + "[-]] " + quest.GetParsedText(quest.QuestClass.ResponseText);
                 SelectableQuestTier_Logger.Log("Generated Text = '" + instance.Text + "'");
             }
+
+            SelectableQuestTier_Logger.Dec();
+            SelectableQuestTier_Logger.Log("<<< SelectableQuestTier_DialogStatement_GetResponses helper method 'ReInit'");
         }
     }
 
