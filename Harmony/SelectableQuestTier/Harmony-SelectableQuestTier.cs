@@ -218,7 +218,7 @@ public class SelectableQuestTier
             for (byte t=1; t<=Quest.MaxQuestTier; ++t)
             {
                 // Fill QuestList Range 5 (DifficultyTier <= 2), or RandomRange 3 to 5 (DifficultyTier == 3), or RandomRange 2 to 4 (DifficultyTier >= 4)
-                int maxCount = (t <= 2) ? 5 : ((t == 3) ? 3 + __instance.rand.RandomRange(2) : 2 + __instance.rand.RandomRange(2));
+                int maxCount = (t <= 2) ? 5 : ((t == 3) ? 3 + __instance.rand.RandomRange(3) : 2 + __instance.rand.RandomRange(3));
                 for (int i=0; i<200; ++i)
                 {
                     int idx = __instance.rand.RandomRange(tmpQuestEntryList.Count);
@@ -260,16 +260,19 @@ public class SelectableQuestTier
             quest.QuestGiverID = targetNPC.entityId;
             quest.SetPositionData(Quest.PositionDataTypes.QuestGiver, targetNPC.position);
             quest.SetupTags();
-            if (@bool || (quest.QuestTags & QuestTags.clear) == 0)
+
+            if (!@bool && (quest.QuestTags & QuestTags.clear) == QuestTags.clear)
             {
-                if ((quest.QuestTags & QuestTags.treasure) == 0 && GameSparksCollector.CollectGamePlayData)
-                {
-                    GameSparksCollector.IncrementCounter(GameSparksCollector.GSDataKey.QuestOfferedDistance, ((int)Vector3.Distance(quest.Position, targetNPC.position) / 50 * 50).ToString(), 1);
-                }
-                if (!quest.NeedsNPCSetPosition || quest.SetupPosition(targetNPC, player, targetNPC.usedPOILocations, player.entityId))
-                {
-                    return quest;
-                }
+                return null;
+            }
+
+            if ((quest.QuestTags & QuestTags.treasure) == 0 && GameSparksCollector.CollectGamePlayData)
+            {
+                GameSparksCollector.IncrementCounter(GameSparksCollector.GSDataKey.QuestOfferedDistance, ((int)Vector3.Distance(quest.Position, targetNPC.position) / 50 * 50).ToString(), 1);
+            }
+            if (!quest.NeedsNPCSetPosition || quest.SetupPosition(targetNPC, player, targetNPC.usedPOILocations, player.entityId))
+            {
+                return quest;
             }
 
             // SelectableQuestTier_Logger.Dec();
@@ -522,7 +525,7 @@ public class SelectableQuestTier
                         break;
                     }
                 } catch (Exception ex) {
-                    SelectableQuestTier_Logger.LogError("ColorParseError: please check Localization.txt\n", ex);
+                    SelectableQuestTier_Logger.LogError("ColorParseError: please check Localization.txt\n" + ex.ToString());
                 }
                 instance.Text = "[[" + color + "]" + Localization.Get("xuiTier").ToUpper() + " " + text + "[-]] " + quest.GetParsedText(quest.QuestClass.ResponseText);
                 SelectableQuestTier_Logger.Log("Generated Text = '" + instance.Text + "'");

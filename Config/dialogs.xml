@@ -1,4 +1,4 @@
-<VFX>
+<modconfig>
 	<!-- Replace to New ID -->
     <set xpath="/dialogs/dialog[@id='trader']/response[@id='jobshave']/@nextstatementid">jobstier</set>
 
@@ -93,4 +93,4 @@
 			<action type="AddJournalEntry" id="questTip"/>
         </response>
     </append>
-</VFX>
+</modconfig>
